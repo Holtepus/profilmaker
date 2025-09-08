@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BB-kode Profilmaker</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root{ --bg:#0e0e0e; --panel:#191919; --row:#222; --row-alt:#1e1e1e; --line:#313131; --text:#e6e6e6; --muted:#bfbfbf; --orange:#c87200; --green:#4caf50; }
+    html,body{background:var(--bg); color:var(--text); margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Noto Sans","Helvetica Neue",Arial;}
+    .wrap{max-width:1200px; margin:0 auto 60px; padding:0 16px;}
+    .section{ background:var(--panel); border:1px solid var(--line); margin:22px 0; box-shadow:0 1px 0 #000 inset, 0 0 10px rgba(0,0,0,.25);} 
+    .section>.bar{ background:linear-gradient(#9e6822,#9c5400,#9e6822); padding:10px 14px; font-weight:800; letter-spacing:.3px; text-transform:uppercase; border-bottom:1px solid #603800; display:flex; align-items:center; gap:10px; }
+    .banner{ width:100%; display:block; object-fit:cover; max-height:140px; border-bottom:1px solid #603800; }
+.banner-wrap { position: relative; }
+.banner-links { position: absolute; bottom: 0; right: 0; display: flex; gap: 14px; background: rgba(0,0,0,0.55); padding: 6px 10px; border-radius: 10px 0 0 0; border: 1px solid rgba(0,0,0,0.32); }
+.banner-links a { font-size: 14px; color: #D6D2D2; font-weight: 600; text-decoration: none; }
+.banner-links a:hover { color: #fff; text-decoration: underline; }
+.banner-credit { position: absolute; bottom: 0; left: 0; background: rgba(0,0,0,0.55); padding: 6px 10px; border-radius: 0 6px 0 0; border: 1px solid rgba(255,255,255,0.12); font-weight: 600; font-size: 14px; color: #ddd; }
+.banner-credit a { color: #1875c5; text-decoration: none; font-weight: 700; }
+.banner-credit a:hover { text-decoration: underline; color: #80c0ff; }
+
+    .toolbar{ display:flex; flex-wrap:wrap; gap:8px; padding:10px 14px; border-bottom:1px solid var(--line); align-items:center; background:var(--row); }
+    .tb-btn{ background:#101010; border:1px solid #3a3a3a; border-radius:6px; padding:6px 10px; cursor:pointer; color:#eee; display:inline-flex; align-items:center; gap:6px; }
+    .tb-btn:hover{ border-color:#555; }
+    .tb-btn.active{ background:#2a2a2a; border-color:#6a6a6a; }
+    .tb-sel, .tb-input{ background:#101010; color:#f2f2f2; border:1px solid #3a3a3a; border-radius:6px; padding:6px 8px; }
+    .pill{ padding:2px 6px; border-radius:999px; background:#0f0f0f; border:1px solid #2e2e2e; font-size:.85rem; }
+
+    .split{ display:grid; grid-template-columns:180px 560px 1fr; gap:16px; padding:14px; }
+    .editor-wrap{ background:#111; border:1px solid var(--line); }
+    #editor{ width:550px; max-width:550px; min-height:480px; background:#0f0f0f; padding:12px; outline:none; }
+    /* — Responsiv bildehåndtering — */
+    #editor img, #editor .col img { max-width:100%; height:auto; display:inline-block; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    #bbcode{ width:100%; min-height:520px; background:#0f0f0f; color:#f2f2f2; border:1px solid var(--line); padding:12px; }
+    .hint{ padding:10px 14px; font-size:.92rem; color:#cfcfcf; }
+    .bar-small{ background:#121212; border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:8px 12px; font-weight:700; }
+
+    .drop-panel{ display:none; padding:10px 14px; border-top:1px solid var(--line); background:var(--row-alt); }
+    .smiley-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(36px,1fr)); gap:8px; }
+    .smiley-grid img{ width:32px; height:32px; display:block; border:1px solid #333; background:#000; }
+    .spec-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(40px,1fr)); gap:8px; }
+    .spec-grid button{ min-width:40px; }
+
+    .side{ border:1px solid var(--line); background:#111; }
+    .side .pad{ padding:10px; }
+    .palette{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+    .pbox{ aspect-ratio:1/1; border:1px solid #3a3a3a; background:#000; cursor:pointer; position:relative; }
+    .pbox::after{ content:""; position:absolute; inset:0; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06); }
+    .grad-preset{ display:grid; grid-template-columns:1fr; gap:8px; }
+    .gbox{ height:28px; border:1px solid #3a3a3a; background:#000; cursor:pointer; position:relative; }
+    .gbox::after{ content:""; position:absolute; inset:0; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06); }
+    .tiny{ font-size:.85rem; color:var(--muted); }
+
+    .grad-ui{ display:grid; gap:10px; }
+    .stops{ display:grid; gap:8px; }
+    .stop{ display:flex; align-items:center; gap:8px; }
+    .stop input[type="number"]{ width:70px; }
+    .preview{ height:28px; border:1px solid #3a3a3a; background:#000; }
+
+    .cols-guide{ font-size:.9rem; color:#cfcfcf; padding:0 14px 10px; }
+    .badge{ display:inline-block; padding:3px 8px; border-radius:6px; background:#0f0f0f; border:1px solid #2e2e2e; font-weight:700; }
+    .muted{ color:#bfbfbf; font-weight:600; }
+
+    @media (max-width:1100px){ .split{ grid-template-columns:1fr; } #editor{ width:100%; max-width:100%; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="section">
+      <div class="banner-wrap">
+        <img class="banner" src="https://i.imgur.com/foCGpSK.png" alt="Banner"/>
+        <div class="banner-links">
+          <a href="https://nmkalkis.netlify.app/" target="_blank">Hasjkalkulator</a>
+          <a href="https://ditt-andre-prosjekt.no" target="_blank">Min Andre App</a>
+          <a href="https://ditt-tredje-prosjekt.no" target="_blank">Tredje App</a>
+        </div>
+        <div class="banner-credit">
+          Laget av <a href="https://nordicmafia.org/index.php?p=profile&id=2181" target="_blank">Pixie Design</a>
+        </div>
+      </div>
+      <br>
+      <div class="bar">BB-kode Profilmaker</div>
+
+      <div class="toolbar" id="toolbar">
+        <button class="tb-btn" data-cmd="bold" title="Fet (Ctrl+B)"><i class="fa-solid fa-bold"></i></button>
+        <button class="tb-btn" data-cmd="italic" title="Kursiv (Ctrl+I)"><i class="fa-solid fa-italic"></i></button>
+        <button class="tb-btn" data-cmd="underline" title="Understreket (Ctrl+U)"><i class="fa-solid fa-underline"></i></button>
+        <button class="tb-btn" data-wrap="strike" title="Gjennomstreket"><i class="fa-solid fa-strikethrough"></i></button>
+        <span class="pill">|</span>
+        <button class="tb-btn" data-block="align-left" title="Venstrejuster"><i class="fa-solid fa-align-left"></i></button>
+        <button class="tb-btn" data-block="align-center" title="Midtstill"><i class="fa-solid fa-align-center"></i></button>
+        <button class="tb-btn" data-block="align-right" title="Høyrejuster"><i class="fa-solid fa-align-right"></i></button>
+        <span class="pill">|</span>
+        <button class="tb-btn" id="clearFormatBtn" title="Fjern formatering (valgt tekst)"><i class="fa-solid fa-broom"></i></button>
+        <select class="tb-sel" id="fontSel" title="Skrifttype (web-safe)"></select>
+        <select class="tb-sel" id="sizeSel" title="Størrelse [size=1..7]"><option value="">Størrelse</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select>
+        <input class="tb-input" id="colorInp" type="color" value="#ffffff" title="Farge [color]" />
+        <button class="tb-btn" id="smallCapsBtn" title="Små kapitéler [small_caps]"><i class="fa-solid fa-a"></i><i class="fa-regular fa-a"></i></button>
+        <button class="tb-btn" data-wrap="sup" title="Hevet [sup]"><i class="fa-solid fa-superscript"></i></button>
+        <button class="tb-btn" data-wrap="sub" title="Senket [sub]"><i class="fa-solid fa-subscript"></i></button>
+        <span class="pill">|</span>
+        <button class="tb-btn" id="linkBtn" title="Lenke [url]"><i class="fa-solid fa-link"></i></button>
+        <button class="tb-btn" id="imgBtn" title="Bilde [img]"><i class="fa-regular fa-image"></i></button>
+        <button class="tb-btn" id="ytBtn" title="YouTube [youtube]"><i class="fa-brands fa-youtube"></i></button>
+        <button class="tb-btn" id="spBtn" title="Spotify [spotify]"><i class="fa-brands fa-spotify"></i></button>
+        <button class="tb-btn" id="audioBtn" title="Musikk [music]"><i class="fa-solid fa-music"></i></button>
+        <button class="tb-btn" id="ruleBtn" title="Vannrett linje [rule]"><i class="fa-solid fa-minus"></i></button>
+        <span class="pill">|</span>
+        <button class="tb-btn" data-wrap="indent" title="Innrykk [indent]"><i class="fa-solid fa-indent"></i></button>
+        <button class="tb-btn" id="listBtn" title="Liste [list] *"><i class="fa-solid fa-list-ul"></i></button>
+        <button class="tb-btn" id="quoteBtn" title="Sitat [quote=name]"><i class="fa-solid fa-quote-right"></i></button>
+        <button class="tb-btn" id="codeBtn" title="Kode [code]"><i class="fa-solid fa-code"></i></button>
+        <button class="tb-btn" id="colsBtn" title="Kolonner [columns]"><i class="fa-solid fa-table-columns"></i></button>
+        <span class="pill">|</span>
+        <button class="tb-btn" id="smileyToggle" title="Smileys"><i class="fa-regular fa-face-smile"></i></button>
+        <button class="tb-btn" id="specToggle" title="Spesialtegn"><i class="fa-solid fa-asterisk"></i></button>
+        <button class="tb-btn" id="varToggle" title="Variabler / tokens"><i class="fa-solid fa-database"></i></button>
+        <span class="pill">|</span>
+        <button class="tb-btn" id="gradHToggle" title="Gradient (bokstav)"><i class="fa-solid fa-palette"></i> H</button>
+        <button class="tb-btn" id="gradVToggle" title="Gradient (linjer)"><i class="fa-solid fa-palette"></i> V</button>
+        <span class="pill">|</span>
+        <button class="tb-btn" id="importBtn" title="Importer BB-kode"><i class="fa-solid fa-file-import"></i> Importer</button>
+        <button class="tb-btn" id="copyBtn" title="Kopier BB-kode"><i class="fa-solid fa-copy"></i> Kopier</button>
+        <button class="tb-btn" id="clearBtn" title="Tøm"><i class="fa-solid fa-eraser"></i></button>
+      </div>
+
+      <div class="drop-panel" id="smileyPanel">
+        <div class="hint">Sett inn smiley ved å klikke.</div>
+        <div class="smiley-grid" id="smileyGrid"></div>
+      </div>
+      <div class="drop-panel" id="specPanel">
+        <div class="hint">Klikk for å sette inn spesialtegn.</div>
+        <div class="spec-grid" id="specGrid"></div>
+      </div>
+      <div class="drop-panel" id="varPanel">
+        <div class="hint">Klikk for å sette inn variabel (token).</div>
+        <div class="spec-grid" id="varGrid"></div>
+      </div>
+
+      <div class="drop-panel" id="gradHPanel">
+        <div class="bar-small">Gradient – bokstav for bokstav</div>
+        <div class="grad-ui">
+          <div class="preview" id="gradHPreview"></div>
+          <div class="stops" id="gradHStops"></div>
+          <div>
+            <button class="tb-btn" id="gradHAdd"><i class="fa-solid fa-plus"></i> Ny node</button>
+            <button class="tb-btn" id="gradHApply"><i class="fa-solid fa-wand-magic-sparkles"></i> Bruk på markering</button>
+          </div>
+        </div>
+      </div>
+      <div class="drop-panel" id="gradVPanel">
+        <div class="bar-small">Gradient – vertikal (linje for linje)</div>
+        <div class="grad-ui">
+          <div class="preview" id="gradVPreview"></div>
+          <div class="stops" id="gradVStops"></div>
+          <div>
+            <button class="tb-btn" id="gradVAdd"><i class="fa-solid fa-plus"></i> Ny node</button>
+            <button class="tb-btn" id="gradVApply"><i class="fa-solid fa-wand-magic-sparkles"></i> Bruk på markering/tekst</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cols-guide">Verktøyet er under utvikling. Kontakt Pixie Design for tilbakemeldinger, så kan vi se på det..</div>
+
+      <div class="split">
+        <aside class="side">
+          <div class="bar-small">Dine farger</div>
+          <div class="pad">
+            <div class="palette" id="palette"></div>
+            <div class="tiny" style="margin-top:6px">Klikk = bruk • Shift-klikk = lagre aktiv farge</div>
+          </div>
+          <div class="bar-small">Gradient-presets</div>
+          <div class="pad">
+            <div class="grad-preset" id="gradPresets"></div>
+            <div class="tiny" style="margin-top:6px">Klikk = last • Shift-klikk = lagre</div>
+          </div>
+        </aside>
+
+        <div class="editor-wrap">
+          <div id="editor" contenteditable="true" spellcheck="false"></div>
+        </div>
+
+        <div>
+          <div class="bar">BB-kode (to-veis)</div>
+          <textarea id="bbcode" class="mono" placeholder="Du kan skrive/endre BB-koden her også…"></textarea>
+        </div>
+      </div>
+      <div class="hint">Editoren viser formateringen visuelt. BB-kodene genereres automatisk – og endringer i BB-feltet oppdaterer editoren.</div>
+    </section>
+  </div>
+
+<script>
+  const WEBSAFE_FONTS = [
+    'Arial','Verdana','Tahoma','Trebuchet MS','Georgia','Times New Roman','Garamond','Courier New','Lucida Console','Lucida Sans Unicode','Segoe UI','Roboto','Ubuntu','Noto Sans','Helvetica','Helvetica Neue','Palatino Linotype','Book Antiqua','Century Gothic','Candara','Gill Sans','Franklin Gothic Medium','Impact','System UI','Monaco'
+  ];
+  const SMILEYS = [
+    {k:':)',u:'https://nordicmafia.org/static/resources/images/smileys/smile.gif'},
+    {k:':D',u:'https://nordicmafia.org/static/resources/images/smileys/big_smile.gif'},
+    {k:':(',u:'https://nordicmafia.org/static/resources/images/smileys/sad.gif'},
+    {k:';)',u:'https://nordicmafia.org/static/resources/images/smileys/wink.gif'}
+  ];
+  const SPECIALS = ['•','●','○','–','—','★','☆','◆','◇','■','□','▲','△','▼','▽','✓','✗','✦','✧','✚','✸','❖'];
+  const TOKENS = ['utbrytninger','besøker','totalmoney','totalbullets','totalpoints','hasjplantasje_størrelse','hasjplantasje_arbeidere_sysselsatte','hasjplantasje_arbeidere_arbeidsløse','hasjplantasje_penger','hasjplantasje_gram','cdg_gangsters','cdg_losses','cdg_wins'];
+
+  const editor = document.getElementById('editor');
+  const bbOut = document.getElementById('bbcode');
+
+  const fontSel = document.getElementById('fontSel');
+  WEBSAFE_FONTS.forEach(f=>{ const o=document.createElement('option'); o.value=f; o.textContent=f; fontSel.appendChild(o); });
+  const colorInp = document.getElementById('colorInp');
+  colorInp.value = '#ffffff';
+
+  // Build small panels
+  const sg = document.getElementById('smileyGrid');
+  SMILEYS.forEach(s=>{ const a=document.createElement('a'); a.href='#'; a.title=s.k; const img=new Image(); img.src=s.u; img.alt=s.k; a.appendChild(img); a.onclick=(e)=>{e.preventDefault(); insertHtml(`<img src="${s.u}" alt="${s.k}">`); syncBB();}; sg.appendChild(a); });
+  const spg = document.getElementById('specGrid'); SPECIALS.forEach(ch=>{ const b=document.createElement('button'); b.className='tb-btn'; b.textContent=ch; b.onclick=()=>{ insertText(ch); syncBB(); }; spg.appendChild(b); });
+  const vg = document.getElementById('varGrid'); TOKENS.forEach(t=>{ const b=document.createElement('button'); b.className='tb-btn'; b.textContent='['+t+']'; b.onclick=()=>{ insertText('['+t+']'); syncBB(); }; vg.appendChild(b); });
+
+  // Toggle panels
+  const panels = {smileyToggle:'smileyPanel', specToggle:'specPanel', varToggle:'varPanel', gradHToggle:'gradHPanel', gradVToggle:'gradVPanel'};
+  Object.keys(panels).forEach(id=>{
+    const btn = document.getElementById(id);
+    if(btn) btn.addEventListener('click', ()=> openPanel(panels[id], btn));
+  });
+  function openPanel(panelId, btn){
+    Object.keys(panels).forEach(id=>{
+      const b=document.getElementById(id); const p=document.getElementById(panels[id]);
+      if(p){ p.style.display='none'; } if(b){ b.classList.remove('active'); }
+    });
+    const panel = document.getElementById(panelId);
+    if(panel){ const wasClosed = panel.style.display!=='block'; panel.style.display = wasClosed?'block':'none'; if(wasClosed){ btn.classList.add('active'); } }
+  }
+
+  // ——— WYSIWYG HELPERS ———
+  function getSelectionInEditor(){
+    const sel = window.getSelection();
+    if(!sel.rangeCount) return null;
+    const r = sel.getRangeAt(0);
+    if(!editor.contains(r.commonAncestorContainer)) return null;
+    return r;
+  }
+  function insertHtml(html, placeCaretInside=false){
+    editor.focus(); const sel=window.getSelection(); if(!sel.rangeCount || !editor.contains(sel.anchorNode)){ editor.insertAdjacentHTML('beforeend', html); return; }
+    const range=sel.getRangeAt(0); range.deleteContents();
+    const tmp=document.createElement('div'); tmp.innerHTML=html; const frag=document.createDocumentFragment(); let node, first=null;
+    while((node=tmp.firstChild)){ if(!first) first=node; frag.appendChild(node); }
+    range.insertNode(frag); if(placeCaretInside && first){ sel.removeAllRanges(); const r=document.createRange(); r.setStart(first,0); r.collapse(true); sel.addRange(r); }
+  }
+  function insertText(t){ insertHtml(t.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))); }
+
+  function wrapInlineTag(tag='span', styleObj={}, datasetObj={}){
+    editor.focus();
+    const sel = window.getSelection();
+    if(!sel.rangeCount || !editor.contains(sel.anchorNode)){
+      const el = document.createElement(tag);
+      Object.assign(el.style, styleObj);
+      Object.entries(datasetObj).forEach(([k,v])=> el.dataset[k]=v);
+      el.appendChild(document.createTextNode(''));
+      editor.appendChild(el);
+      const r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
+      sel.removeAllRanges(); sel.addRange(r); syncBB(); return;
+    }
+    const range = sel.getRangeAt(0);
+    const frag = range.cloneContents();
+    const el = document.createElement(tag);
+    Object.assign(el.style, styleObj);
+    Object.entries(datasetObj).forEach(([k,v])=> el.dataset[k]=v);
+    el.appendChild(frag);
+    range.deleteContents(); range.insertNode(el);
+    sel.removeAllRanges(); const r = document.createRange(); r.setStartAfter(el); r.collapse(true); sel.addRange(r);
+    syncBB();
+  }
+  function elementsInRange(range, selector){
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_ELEMENT, {
+      acceptNode(node){
+        if(!(node instanceof Element)) return NodeFilter.FILTER_SKIP;
+        if(!node.matches(selector)) return NodeFilter.FILTER_SKIP;
+        const nr = document.createRange();
+        nr.selectNodeContents(node);
+        const overlaps = !(nr.compareBoundaryPoints(Range.END_TO_START, range) <= 0 ||
+                           nr.compareBoundaryPoints(Range.START_TO_END, range) >= 0);
+        return overlaps ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+      }
+    });
+    const list=[]; let n; while(n=walker.nextNode()) list.push(n);
+    return list;
+  }
+  function unwrap(el){
+    const parent = el.parentNode;
+    while(el.firstChild) parent.insertBefore(el.firstChild, el);
+    parent.removeChild(el);
+  }
+
+  // ——— Formatting actions ———
+  function wrapBlockAlign(align='left'){
+    editor.focus();
+    const sel = window.getSelection();
+    if(!sel.rangeCount || !editor.contains(sel.anchorNode)){
+      const d = document.createElement('div'); d.style.textAlign = align; d.appendChild(document.createTextNode(''));
+      editor.appendChild(d);
+      const rr = document.createRange(); rr.selectNodeContents(d); rr.collapse(false); sel.removeAllRanges(); sel.addRange(rr); syncBB(); return;
+    }
+    const r = sel.getRangeAt(0), frag = r.cloneContents();
+    const d = document.createElement('div'); d.style.textAlign = align; d.appendChild(frag);
+    r.deleteContents(); r.insertNode(d); sel.removeAllRanges(); const rr = document.createRange(); rr.setStartAfter(d); rr.collapse(true); sel.addRange(rr); syncBB();
+  }
+  function applyStrike(){ wrapInlineTag('s'); }
+  function applySup(){ wrapInlineTag('sup'); }
+  function applySub(){ wrapInlineTag('sub'); }
+  function applyIndent(){ wrapInlineTag('div', { marginLeft: '20px' }); }
+  function applyFont(f){ if(f) wrapInlineTag('span', { fontFamily: f }); }
+  function sizeMap(n){ const map={1:'0.75rem',2:'0.875rem',3:'1rem',4:'1.25rem',5:'1.5rem',6:'2rem',7:'3rem'}; return map[n]||'1rem'; }
+  function applySize(n){ if(n) wrapInlineTag('span', { fontSize: sizeMap(n) }, { bbSize: String(n) }); }
+  function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+  function _toHex(n){ n = clamp(Math.round(n),0,255); return n.toString(16).padStart(2,'0'); }
+  function cssColorToHexLower(c){
+    if(!c) return '#000000';
+    if(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c)){ let hex=c.toLowerCase(); if(hex.length===4){ hex = '#'+hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3]; } return hex; }
+    const m = c.match(/^rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)(?:\s*,\s*([0-9.]+))?\s*\)$/i);
+    if(m){ return '#'+_toHex(parseFloat(m[1]))+_toHex(parseFloat(m[2]))+_toHex(parseFloat(m[3])); }
+    const tmp = document.createElement('span'); tmp.style.color = c; document.body.appendChild(tmp);
+    const cs = getComputedStyle(tmp).color; document.body.removeChild(tmp);
+    return cssColorToHexLower(cs);
+  }
+  function applyColor(hex){ if(hex) wrapInlineTag('span', { color: cssColorToHexLower(hex) }); }
+
+  // Small caps: toggle
+  function toggleSmallCaps(){
+    const range = getSelectionInEditor();
+    if(!range || range.collapsed){
+      // No markering – bare toggl nærmeste hvis vi står inni en small-caps
+      const sel = window.getSelection();
+      const node = sel.rangeCount? sel.getRangeAt(0).startContainer : null;
+      const sc = node ? (node.nodeType===1? node : node.parentElement).closest('span[data-sc], span[style*="font-variant: small-caps"]') : null;
+      if(sc){ unwrap(sc); syncBB(); return; }
+      wrapInlineTag('span', {fontVariant:'small-caps'}, {sc:'1'}); return;
+    }
+    // Finn alle small-caps i området
+    const hits = elementsInRange(range, 'span[data-sc], span[style*="font-variant: small-caps"]');
+    if(hits.length){
+      hits.forEach(unwrap);
+      syncBB();
+    }else{
+      wrapInlineTag('span', {fontVariant:'small-caps'}, {sc:'1'});
+    }
+  }
+
+  // Clear formatting (valgt område): fjerner standard richtext + våre inline-spans
+  function clearFormatting(){
+    const range = getSelectionInEditor();
+    if(!range) return;
+    document.execCommand('removeFormat'); // b/i/u, osv.
+    // Unwrap våre spans (farge, font, size, small-caps) som overlapper
+    ['span[data-sc]','span[style*="font-variant"]','span[style*="font-size"]','span[style*="font-family"]','span[style*="color"]','span[data-bb-size]']
+      .forEach(sel=> elementsInRange(range, sel).forEach(unwrap));
+    // Fjern <s>, <sup>, <sub> i utvalg
+    ['s','sup','sub'].forEach(tag=> elementsInRange(range, tag).forEach(unwrap));
+    syncBB();
+  }
+
+  // Toolbar wiring
+  document.getElementById('toolbar').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if(!btn) return;
+    const cmd = btn.dataset.cmd; const wrap = btn.dataset.wrap; const block = btn.dataset.block;
+    if (cmd){ document.execCommand(cmd, false, null); syncBB(); return; }
+    if (block){
+      if (block==='align-left') wrapBlockAlign('left');
+      if (block==='align-center') wrapBlockAlign('center');
+      if (block==='align-right') wrapBlockAlign('right');
+      return;
+    }
+    if (wrap){
+      if (wrap==='strike') { applyStrike(); return; }
+      if (wrap==='sup') { applySup(); return; }
+      if (wrap==='sub') { applySub(); return; }
+      if (wrap==='indent') { applyIndent(); return; }
+    }
+  });
+  document.getElementById('smallCapsBtn').onclick = toggleSmallCaps;
+  document.getElementById('clearFormatBtn').onclick = clearFormatting;
+  fontSel.onchange = ()=> applyFont(fontSel.value);
+  document.getElementById('sizeSel').onchange = (e)=> applySize(e.target.value);
+  colorInp.onchange = (e)=> applyColor(e.target.value);
+
+  // Insert buttons
+  document.getElementById('ruleBtn').onclick = ()=>{ insertHtml('<hr>'); syncBB(); };
+  document.getElementById('linkBtn').onclick = ()=>{ const url=prompt('URL'); if(url){ document.execCommand('createLink',false,url); } syncBB(); };
+  document.getElementById('imgBtn').onclick = ()=>{ const url=prompt('Bilde-URL'); if(url){ insertHtml(`<img src="${url}" alt="">`); } syncBB(); };
+  document.getElementById('ytBtn').onclick = ()=>{ const v=prompt('YouTube-lenke eller ID'); if(v){ insertHtml(embedYouTubeHTML(v)); } syncBB(); };
+  document.getElementById('spBtn').onclick = ()=>{ const l=prompt('Spotify-lenke (embed)'); if(l){ insertHtml(embedSpotifyHTML(l)); } syncBB(); };
+  document.getElementById('audioBtn').onclick = ()=>{ const l=prompt('Musikk-lenke'); if(l){ insertHtml(`<audio controls src="${l}"></audio>`); } syncBB(); };
+  document.getElementById('quoteBtn').onclick = ()=>{ const who=prompt('Siterer (brukernavn)? (valgfritt)')||''; const h=who?`<blockquote><cite>${who}</cite><div></div></blockquote>`:`<blockquote><div></div></blockquote>`; insertHtml(h,true); syncBB(); };
+  document.getElementById('codeBtn').onclick = ()=>{ insertHtml('<pre class="mono"><code>// kode</code></pre>',true); syncBB(); };
+  document.getElementById('listBtn').onclick = ()=>{ insertHtml('<ul><li>punkt</li><li>punkt</li></ul>'); syncBB(); };
+  document.getElementById('colsBtn').onclick = ()=>{ const n=+prompt('Antall kolonner (2–4)?', '2')||2; const cols=Math.max(2,Math.min(4,n)); let inner=''; for(let i=0;i<cols;i++){ inner+=`<div class="col">Kolonne ${i+1}</div>`; } insertHtml(`<div data-bb="columns" style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:10px">${inner}</div>`); syncBB(); };
+
+  document.getElementById('importBtn').onclick = ()=>{ const bb=prompt('Lim inn BB-kode:'); if(bb!=null){ editor.innerHTML = bbToHtml(bb); syncBB(); } };
+  document.getElementById('copyBtn').onclick = async ()=>{ await navigator.clipboard.writeText(bbOut.value); alert('BB-kode kopiert.'); };
+  document.getElementById('clearBtn').onclick = ()=>{ editor.innerHTML=''; syncBB(); };
+
+  // Palette
+  const paletteEl = document.getElementById('palette');
+  const paletteKey='bb_palette9';
+  let palette = JSON.parse(localStorage.getItem(paletteKey)||'["#ff4757","#ffa502","#2ed573","#1e90ff","#3742fa","#a29bfe","#ff6b81","#70a1ff","#ffffff"]');
+  if(!Array.isArray(palette) || palette.length!==9){ palette = Array(9).fill('#000000'); }
+  function renderPalette(){
+    paletteEl.innerHTML='';
+    palette.forEach((col,idx)=>{
+      const b=document.createElement('div'); b.className='pbox'; b.style.background = col; b.title = col + ' — klikk=bruk, Shift-klikk=lagre her';
+      b.addEventListener('click', (e)=>{
+        if(e.shiftKey){ palette[idx] = colorInp.value || '#ffffff'; localStorage.setItem(paletteKey, JSON.stringify(palette)); renderPalette(); }
+        else { applyColor(col); }
+      });
+      paletteEl.appendChild(b);
+    });
+  }
+  renderPalette();
+
+  // —— BB <-> HTML —— (med HEX-farger)
+  function sizeMap(n){ const map={1:'0.75rem',2:'0.875rem',3:'1rem',4:'1.25rem',5:'1.5rem',6:'2rem',7:'3rem'}; return map[n]||'1rem'; }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
+
+  function bbToHtml(bb){
+    if(!bb) return '';
+    const codeMap = []; bb = bb.replace(/\[code\]([\s\S]*?)\[\/code\]/gi,(m,p)=>{ const id=codeMap.push(p)-1; return `[[CODE_${id}]]`; });
+    bb = bb.replace(/\[list\]([\s\S]*?)\[\/list\]/gi,(m,p)=>{ const items = (p.match(/\*\s?.+/g)||[]).map(x=>`<li>${escapeHtml(x.replace(/^\*\s?/,''))}</li>`).join(''); return `<ul>${items}</ul>`; });
+    const rep = [
+      [/\[b\]([\s\S]*?)\[\/b\]/gi,'<strong>$1<\/strong>'],
+      [/\[i\]([\s\S]*?)\[\/i\]/gi,'<em>$1<\/em>'],
+      [/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1<\/u>'],
+      [/\[s\]([\s\S]*?)\[\/s\]/gi,'<s>$1<\/s>'],
+      [/\[sup\]([\s\S]*?)\[\/sup\]/gi,'<sup>$1<\/sup>'],
+      [/\[sub\]([\s\S]*?)\[\/sub\]/gi,'<sub>$1<\/sub>'],
+      [/\[small_caps\]([\s\S]*?)\[\/small_caps\]/gi,'<span data-sc="1" style="font-variant:small-caps;">$1<\/span>'],
+      [/\[left\]([\s\S]*?)\[\/left\]/gi,'<div style="text-align:left;">$1<\/div>'],
+      [/\[center\]([\s\S]*?)\[\/center\]/gi,'<div style="text-align:center;">$1<\/div>'],
+      [/\[right\]([\s\S]*?)\[\/right\]/gi,'<div style="text-align:right;">$1<\/div>'],
+      [/\[size=(\d)\]([\s\S]*?)\[\/size\]/gi,(m,n,t)=>`<span data-bb-size="${n}" style="font-size:${sizeMap(n)};">${t}<\/span>`],
+      [/\[font=([^\]]+)\]([\s\S]*?)\[\/font\]/gi,'<span style="font-family:$1;">$2<\/span>'],
+      [/\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/gi,'<span style="color:$1;">$2<\/span>'],
+      [/\[acronym=([^\]]+)\]([\s\S]*?)\[\/acronym\]/gi,'<abbr title="$1">$2<\/abbr>'],
+      [/\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi,'<a href="$1" target="_blank" rel="noopener">$2<\/a>'],
+      [/\[email=([^\]]+)\]([\s\S]*?)\[\/email\]/gi,'<a href="mailto:$1">$2<\/a>'],
+      [/\[img\]([\s\S]*?)\[\/img\]/gi,'<img src="$1" alt="" \/>'],
+      [/\[rule\]/gi,'<hr>'],
+      [/\[br\]/gi,'<br>']
+    ];
+    rep.forEach(([r,v])=> bb = bb.replace(r,v));
+    bb = bb.replace(/\[indent\]([\s\S]*?)\[\/indent\]/gi,(m,p)=>`<div style="margin-left:20px">${p}<\/div>`);
+    for(let i=0;i<4;i++){ bb = bb.replace(/\[indent\]([\s\S]*?)\[\/indent\]/gi,(m,p)=>`<div style="margin-left:20px">${p}<\/div>`); }
+
+    bb = bb.replace(/\[columns\]([\s\S]*?)\[\/columns\]/gi,(m,p)=>{
+      const cols = p.split(/\[nextcol\]/gi).map(s=>s.trim());
+      const n = Math.min(4, Math.max(2, cols.length));
+      return `<div data-bb="columns" style="display:grid;grid-template-columns:repeat(${n},1fr);gap:10px">${cols.map(c=>`<div class="col">${c}<\/div>`).join('')}<\/div>`;
+    });
+    TOKENS.forEach(t=>{ const r=new RegExp('\\\['+t+'\\\]','gi'); bb = bb.replace(r, `<span class="badge">[${t}]<\/span>`); });
+    bb = bb.replace(/\[\[CODE_(\d+)\]\]/g, (m,id)=> `<pre class="mono"><code>${escapeHtml(codeMap[id])}<\/code><\/pre>`);
+    return bb;
+  }
+
+  function inner(el){ return Array.from(el.childNodes).map(htmlToBB).join(''); }
+  function htmlToBB(node){
+    if(node.nodeType===3){ return node.nodeValue; }
+    if(node.nodeType!==1){ return ''; }
+    const el = node; const tag = el.tagName;
+
+    if(tag==='PRE'){ const code = el.querySelector('code'); const txt = code?code.textContent:el.textContent; return `[code]${txt}[/code]`; }
+    if(tag==='BLOCKQUOTE'){ const cite = el.querySelector('cite'); const body = Array.from(el.childNodes).filter(n=>n!==cite).map(htmlToBB).join(''); const user = cite?cite.textContent:''; return `[quote=${user}]${body}[/quote]`; }
+    if(tag==='HR') return '[rule]';
+    if(tag==='BR') return '[br]';
+    if(tag==='UL') return `[list]\n${Array.from(el.children).map(li=>' * '+htmlToBB(li)).join('\n')}\n[/list]`;
+    if(tag==='LI') return Array.from(el.childNodes).map(htmlToBB).join('');
+    if(tag==='A'){ const href = el.getAttribute('href')||''; if(href.startsWith('mailto:')) return `[email=${href.replace('mailto:','')}]${inner(el)}[/email]`; return `[url=${href}]${inner(el)}[/url]`; }
+    if(tag==='IMG') return `[img]${el.getAttribute('src')||''}[/img]`;
+    if(tag==='SUP') return `[sup]${inner(el)}[/sup]`;
+    if(tag==='SUB') return `[sub]${inner(el)}[/sub]`;
+    if(tag==='ABBR') return `[acronym=${el.getAttribute('title')||''}]${inner(el)}[/acronym]`;
+    if(tag==='IFRAME'){ const src = el.getAttribute('src')||''; if(src.includes('youtube.com')){ const v = (src.match(/embed\/([\w-]{11})/)||[])[1]||''; return `[youtube]${v}[/youtube]`; } if(src.includes('open.spotify.com')){ return `[spotify]${src.replace('/embed','')}[/spotify]`; } return src; }
+    if(tag==='AUDIO'){ const src = el.getAttribute('src')||''; return `[music]${src}[/music]`; }
+
+    if(el.dataset && el.dataset.bb==='columns'){ const parts = Array.from(el.querySelectorAll(':scope > .col')).map(inner); return `[columns]${parts.join('[nextcol]')}[/columns]`; }
+
+    if(tag==='SPAN'){
+      const fv = el.style.fontVariant || el.style.fontVariantCaps;
+      if(el.dataset && el.dataset.sc) return `[small_caps]${inner(el)}[/small_caps]`;
+      if(fv && fv.toLowerCase().includes('small-caps')) return `[small_caps]${inner(el)}[/small_caps]`;
+      if(el.dataset && el.dataset.bbSize){ return `[size=${el.dataset.bbSize}]${inner(el)}[/size]`; }
+      if(el.style.fontFamily){ return `[font=${el.style.fontFamily.replace(/['"]/g,'')}]${inner(el)}[/font]`; }
+      if(el.style.color){ const hex = cssColorToHexLower(el.style.color); return `[color=${hex}]${inner(el)}[/color]`; }
+    }
+    if(tag==='DIV'){
+      const ta = el.style.textAlign || '';
+      if(ta==='center') return `[center]${inner(el)}[/center]`;
+      if(ta==='right') return `[right]${inner(el)}[/right]`;
+      if(ta==='left') return `[left]${inner(el)}[/left]`;
+      if(el.style.marginLeft) return `[indent]${inner(el)}[/indent]`;
+    }
+    if(tag==='STRONG' || tag==='B') return `[b]${inner(el)}[/b]`;
+    if(tag==='EM' || tag==='I') return `[i]${inner(el)}[/i]`;
+    if(tag==='U') return `[u]${inner(el)}[/u]`;
+    if(tag==='S' || tag==='DEL') return `[s]${inner(el)}[/s]`;
+
+    if(el.classList.contains('badge')) return el.textContent.trim();
+    return inner(el);
+  }
+
+  // ——— Sync begge veier uten løkke ———
+  let _squelch = false;
+  function syncBB(){ 
+    if(_squelch) return;
+    _squelch = true;
+    let out = Array.from(editor.childNodes).map(htmlToBB).join('');
+    out = out.replace(/\[color=rgba?\([^\]]+\)\]/gi, (m)=>{
+      const raw = m.slice(7,-1);
+      const hex = cssColorToHexLower(raw.replace(/^color=/,''));
+      return `[color=${hex}]`;
+    });
+    bbOut.value = out;
+    _squelch = false;
+  }
+  function syncEditorFromBB(){
+    if(_squelch) return;
+    _squelch = true;
+    editor.innerHTML = bbToHtml(bbOut.value);
+    _squelch = false;
+    syncBB(); // normaliser BB etter parse
+  }
+
+  // Gradient utilities (som før)
+  function mkStop(color='#ffffff', pos=0){ return {color, pos}; }
+  function clampVal(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function hexToRgb(h){ h=h.replace('#',''); if(h.length===3){ h=h.split('').map(x=>x+x).join(''); } const n=parseInt(h,16); return {r:(n>>16)&255, g:(n>>8)&255, b:n&255}; }
+  function rgbToHex({r,g,b}){ const h = (1<<24) + (r<<16) + (g<<8) + b; return '#'+h.toString(16).slice(1).padStart(6,'0'); }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+  function mix(c1,c2,t){ return { r:Math.round(lerp(c1.r,c2.r,t)), g:Math.round(lerp(c1.g,c2.g,t)), b:Math.round(lerp(c1.b,c2.b,t)) }; }
+  function cssGradient(stops){ const s = stops.slice().sort((a,b)=>a.pos-b.pos).map(s=>`${s.color} ${s.pos}%`).join(', '); return `linear-gradient(90deg, ${s})`; }
+
+  function buildStopsUI(containerId, previewId, addBtnId, defStops){
+    const cont = document.getElementById(containerId);
+    const prev = document.getElementById(previewId);
+    const addBtn = document.getElementById(addBtnId);
+    let stops = defStops.slice();
+    function render(){
+      cont.innerHTML=''; stops.sort((a,b)=>a.pos-b.pos); prev.style.background = cssGradient(stops);
+      stops.forEach((st,idx)=>{
+        const row = document.createElement('div'); row.className='stop';
+        const c = document.createElement('input'); c.type='color'; c.value=st.color; c.oninput=()=>{ st.color=c.value; render(); };
+        const n = document.createElement('input'); n.type='number'; n.min=0; n.max=100; n.value=st.pos; n.oninput=()=>{ st.pos=clampVal(+n.value||0,0,100); render(); };
+        const del = document.createElement('button'); del.className='tb-btn'; del.innerHTML='<i class="fa-solid fa-xmark"></i>'; del.title='Fjern node'; del.onclick=()=>{ if(stops.length>2){ stops.splice(idx,1); render(); } };
+        row.append(c,n,del); cont.appendChild(row);
+      });
+    }
+    addBtn.onclick = ()=>{ stops.push(mkStop('#ffffff', 50)); render(); };
+    render();
+    return { getStops: ()=>stops, setStops: (s)=>{stops=s.slice(); render();}, preview: prev };
+  }
+  const gradHU = buildStopsUI('gradHStops','gradHPreview','gradHAdd',[mkStop('#ff0000',0), mkStop('#00aaff',100)]);
+  const gradVU = buildStopsUI('gradVStops','gradVPreview','gradVAdd',[mkStop('#ff9f0a',0), mkStop('#8e44ad',100)]);
+
+  function splitFragmentByBr(frag){ const lines=[]; let cur=document.createDocumentFragment(); Array.from(frag.childNodes).forEach(n=>{ if(n.nodeType===1 && n.tagName==='BR'){ lines.push(cur); cur=document.createDocumentFragment(); } else { cur.appendChild(n); } }); lines.push(cur); return lines; }
+  function applyLetterGradient(){
+    const range = getSelectionInEditor(); if(!range || range.collapsed){ alert('Marker teksten du vil gi bokstav-gradient.'); return; }
+    const text = range.toString(); const chars = Array.from(text);
+    const stops = gradHU.getStops().slice().sort((a,b)=>a.pos-b.pos);
+    function colorAt(t){
+      const p = t*100; let a=stops[0], b=stops[stops.length-1];
+      for(let i=0;i<stops.length-1;i++){ if(p>=stops[i].pos && p<=stops[i+1].pos){ a=stops[i]; b=stops[i+1]; break; } }
+      const tt = (p - a.pos) / Math.max(1,(b.pos - a.pos));
+      const ca = hexToRgb(a.color), cb = hexToRgb(b.color);
+      return rgbToHex(mix(ca,cb,clampVal(tt,0,1)));
+    }
+    const frag = document.createDocumentFragment();
+    chars.forEach((ch,i)=>{ const span=document.createElement('span'); span.style.color = colorAt(chars.length===1?0: i/(chars.length-1)); span.textContent = ch; frag.appendChild(span); });
+    range.deleteContents(); range.insertNode(frag); syncBB();
+  }
+  function applyLineGradient(){
+    let range = getSelectionInEditor(); let targetFrag, insertionRange;
+    if(range && !range.collapsed){ targetFrag = range.cloneContents(); insertionRange = range; } else { insertionRange = document.createRange(); insertionRange.selectNodeContents(editor); targetFrag = insertionRange.cloneContents(); }
+    const stops = gradVU.getStops().slice().sort((a,b)=>a.pos-b.pos);
+    function colorAt(t){ const p=t*100; let a=stops[0], b=stops[stops.length-1]; for(let i=0;i<stops.length-1;i++){ if(p>=stops[i].pos && p<=stops[i+1].pos){ a=stops[i]; b=stops[i+1]; break; } } const tt=(p-a.pos)/Math.max(1,(b.pos-a.pos)); const ca=hexToRgb(a.color), cb=hexToRgb(b.color); return rgbToHex(mix(ca,cb,clampVal(tt,0,1))); }
+    const tmp = document.createElement('div'); tmp.appendChild(targetFrag);
+    let lineNodes = [];
+    if(tmp.querySelector('br')){ const frag2 = document.createDocumentFragment(); Array.from(tmp.childNodes).forEach(n=>frag2.appendChild(n)); lineNodes = splitFragmentByBr(frag2); }
+    else { lineNodes = Array.from(tmp.childNodes).map(n=>{ const f=document.createDocumentFragment(); f.appendChild(n); return f; }); }
+    const total = Math.max(1, lineNodes.length-1);
+    const out = document.createDocumentFragment();
+    lineNodes.forEach((ln, i)=>{ const spanWrap = document.createElement('span'); spanWrap.style.color = colorAt(total===0?0:i/total); spanWrap.appendChild(ln); out.appendChild(spanWrap); if(i<lineNodes.length-1) out.appendChild(document.createElement('br')); });
+    insertionRange.deleteContents(); insertionRange.insertNode(out); syncBB();
+  }
+  document.getElementById('gradHApply').onclick = applyLetterGradient;
+  document.getElementById('gradVApply').onclick = applyLineGradient;
+
+  // HTML ↔ BB events
+  editor.addEventListener('input', syncBB);
+  editor.addEventListener('keyup', (e)=>{ if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) syncBB(); });
+  // BB-textarea => editor (debounced)
+  let _bbTimer = null;
+  bbOut.addEventListener('input', ()=>{
+    clearTimeout(_bbTimer);
+    _bbTimer = setTimeout(syncEditorFromBB, 200);
+  });
+
+  // Seed
+  editor.innerHTML = '<div style="text-align:center"><span data-sc="1" style="font-variant:small-caps;">Velkommen</span> til <strong>LIVE BB-kode Editor</strong><br><img src="https://picsum.photos/900/300" alt=""></div>';
+  syncBB();
+
+  // Enkle helpers for embeds (uendret fra din versjon – plasser her om de manglet)
+  function embedYouTubeHTML(v){
+    const id = (v.match(/(?:v=|youtu\.be\/|embed\/)([\w-]{11})/)||[])[1]||v.trim();
+    return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`;
+  }
+  function embedSpotifyHTML(url){
+    const u = url.replace('open.spotify.com/', 'open.spotify.com/embed/');
+    return `<iframe style="border-radius:12px" src="${u}" width="100%" height="152" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+  }
+</script>
+</body>
+</html>
