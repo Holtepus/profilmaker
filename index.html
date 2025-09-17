@@ -42,6 +42,35 @@
     .smiley-grid img{ width:32px; height:32px; display:block; border:1px solid #333; background:#000; }
     .spec-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(40px,1fr)); gap:8px; }
     .spec-grid button{ min-width:40px; }
+    /* --- Tokens: bedre layout og linjebryting --- */
+#varGrid.spec-grid{
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* større felt */
+}
+    /* Fancy alfabet-panel */
+.fancy-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+  gap:8px;
+}
+.fancy-grid .tb-btn{
+  min-width:36px;
+  min-height:36px;
+  font: 14px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+  justify-content:center;
+  padding:.35rem .4rem;
+}
+
+
+#varGrid .tb-btn{
+  white-space: normal;       /* tillat flere linjer */
+  overflow-wrap: anywhere;   /* bryt lange “ord” (underscore) */
+  word-break: break-word;    /* ekstra */
+  line-height: 1.15;
+  min-height: 38px;
+  font: 12px/1.15 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+  justify-content: center;
+  padding: .45rem .6rem;
+}
 
     .side{ border:1px solid var(--line); background:#111; }
     .side .pad{ padding:10px; }
@@ -114,8 +143,9 @@
         <button class="tb-btn" id="colsBtn" title="Kolonner [columns]"><i class="fa-solid fa-table-columns"></i></button>
         <span class="pill">|</span>
         <button class="tb-btn" id="smileyToggle" title="Smileys"><i class="fa-regular fa-face-smile"></i></button>
+        <button class="tb-btn" id="fancyToggle" title="Fancy bokstaver"><i class="fa-solid fa-a"></i></button>
         <button class="tb-btn" id="specToggle" title="Spesialtegn"><i class="fa-solid fa-asterisk"></i></button>
-        <button class="tb-btn" id="varToggle" title="Variabler / tokens"><i class="fa-solid fa-database"></i></button>
+        <button class="tb-btn" id="varToggle" title="Variabler"><i class="fa-solid fa-database"></i></button>
         <span class="pill">|</span>
         <button class="tb-btn" id="gradHToggle" title="Gradient (bokstav)"><i class="fa-solid fa-palette"></i> H</button>
         <button class="tb-btn" id="gradVToggle" title="Gradient (linjer)"><i class="fa-solid fa-palette"></i> V</button>
@@ -136,6 +166,10 @@
       <div class="drop-panel" id="varPanel">
         <div class="hint">Klikk for å sette inn variabel (token).</div>
         <div class="spec-grid" id="varGrid"></div>
+      </div>
+      <div class="drop-panel" id="fancyPanel">
+        <div class="hint">Kli  kk for å sette inn bokstav. Hver seksjon er et eget alfabet (A–Z).</div>
+        <div id="fancyWrap"></div>
       </div>
 
       <div class="drop-panel" id="gradHPanel">
@@ -198,7 +232,7 @@ const SMILEYS = [
   {k:':)',u:'https://nordicmafia.org/static/resources/images/smileys/smile.gif'},
   {k:':(',u:'https://nordicmafia.org/static/resources/images/smileys/frown.gif'},
   {k:':D',u:'https://nordicmafia.org/static/resources/images/smileys/bigsmile.gif'},
-  {k:'>:',u:'https://nordicmafia.org/static/resources/images/smileys/angry.gif'},
+  {k:'>:(',u:'https://nordicmafia.org/static/resources/images/smileys/angry.gif'},
   {k:'>:)',u:'https://nordicmafia.org/static/resources/images/smileys/evil.gif'},
   {k:'>;)',u:'https://nordicmafia.org/static/resources/images/smileys/sneaky.gif'},
   {k:'O:)',u:'https://nordicmafia.org/static/resources/images/smileys/saint.gif'},
@@ -283,10 +317,72 @@ const SPECIALS = [
   const sg = document.getElementById('smileyGrid');
   SMILEYS.forEach(s=>{ const a=document.createElement('a'); a.href='#'; a.title=s.k; const img=new Image(); img.src=s.u; img.alt=s.k; a.appendChild(img); a.onclick=(e)=>{e.preventDefault(); insertHtml(`<img src="${s.u}" alt="${s.k}">`); syncBB();}; sg.appendChild(a); });
   const spg = document.getElementById('specGrid'); SPECIALS.forEach(ch=>{ const b=document.createElement('button'); b.className='tb-btn'; b.textContent=ch; b.onclick=()=>{ insertText(ch); syncBB(); }; spg.appendChild(b); });
-  const vg = document.getElementById('varGrid'); TOKENS.forEach(t=>{ const b=document.createElement('button'); b.className='tb-btn'; b.textContent='['+t+']'; b.onclick=()=>{ insertText('['+t+']'); syncBB(); }; vg.appendChild(b); });
+const vg = document.getElementById('varGrid');
+TOKENS.forEach(t=>{
+  const b = document.createElement('button');
+  b.className = 'tb-btn';
+  b.title = t; // tooltip med full verdi
+
+  // legg inn mykt brytepunkt etter underscore i knappen (visuelt),
+  // men sett inn originaltoken i editoren
+  const nice = t.replaceAll('_', '_\u200b');
+  b.textContent = '[' + nice + ']';
+
+  b.onclick = () => { insertText('[' + t + ']'); syncBB(); };
+  vg.appendChild(b);
+});
 
   // Toggle panels
-  const panels = {smileyToggle:'smileyPanel', specToggle:'specPanel', varToggle:'varPanel', gradHToggle:'gradHPanel', gradVToggle:'gradVPanel'};
+const panels = {
+  smileyToggle:'smileyPanel',
+  specToggle:'specPanel',
+  varToggle:'varPanel',
+  fancyToggle:'fancyPanel',   // <— NY
+  gradHToggle:'gradHPanel',
+  gradVToggle:'gradVPanel'
+};
+
+  // --- Fancy alfabet-sett (A–Z) ---
+// Nøyaktig som i eksemplene dine (inkl. spesial-bokstavene ℭ ℌ ℑ ℜ ℨ, osv.)
+const ALPH_SETS = [
+  { title: 'Fraktur',
+    chars: ['𝔄','𝔅','ℭ','𝔇','𝔈','𝔉','𝔊','ℌ','ℑ','𝔍','𝔎','𝔏','𝔐','𝔑','𝔒','𝔓','𝔔','ℜ','𝔖','𝔗','𝔘','𝔙','𝔚','𝔛','𝔜','ℨ'] },
+  { title: 'Script',
+    chars: ['𝓐','𝓑','𝓒','𝓓','𝓔','𝓕','𝓖','𝓗','𝓘','𝓙','𝓚','𝓛','𝓜','𝓝','𝓞','𝓟','𝓠','𝓡','𝓢','𝓣','𝓤','𝓥','𝓦','𝓧','𝓨','𝓩'] },
+  { title: 'Double-struck',
+    chars: ['𝔸','𝔹','ℂ','𝔻','𝔼','𝔽','𝔾','ℍ','𝕀','𝕁','𝕂','𝕃','𝕄','ℕ','𝕆','ℙ','ℚ','ℝ','𝕊','𝕋','𝕌','𝕍','𝕎','𝕏','𝕐','ℤ'] },
+  { title: 'Dekor 1',
+    chars: ['ꍏ','ꌃ','ꉓ','ꀸ','ꍟ','ꎇ','ꁅ','ꃅ','ꀤ','ꀭ','ꀘ','꒒','ꂵ','ꈤ','ꂦ','ꉣ','ꆰ','ꋪ','ꌗ','꓄','ꀎ','ꃴ','ꅏ','ꊼ','ꌩ','ꁴ'] },
+  { title: 'Miks',
+    chars: ['𝔸','乃','¢','ｄ','Ⓔ','Ŧ','Ꮆ','𝐇','𝐢','𝐣','ｋ','𝓵','𝕄','𝐍','σ','𝓅','𝓺','Ⓡ','𝐬','т','ù','ᵛ','𝐰','᙭','𝕐','𝔃'] }
+];
+
+// Bygger panelet: en seksjon per alfabet, med en grid med 26 knapper
+(function renderFancyAlphabets(){
+  const wrap = document.getElementById('fancyWrap');
+  wrap.innerHTML = '';
+  ALPH_SETS.forEach(set=>{
+    const h = document.createElement('div');
+    h.className = 'bar-small';
+    h.textContent = set.title;
+    const grid = document.createElement('div');
+    grid.className = 'fancy-grid';
+
+    set.chars.forEach((ch, i)=>{
+      const b = document.createElement('button');
+      b.className = 'tb-btn';
+      b.textContent = ch;
+      // Tooltip viser "A → 𝔄", "B → 𝔅", etc.
+      b.title = `${String.fromCharCode(65 + i)} → ${ch}`;
+      b.onclick = () => { insertText(ch); syncBB(); };
+      grid.appendChild(b);
+    });
+
+    wrap.appendChild(h);
+    wrap.appendChild(grid);
+  });
+})();
+
   Object.keys(panels).forEach(id=>{
     const btn = document.getElementById(id);
     if(btn) btn.addEventListener('click', ()=> openPanel(panels[id], btn));
