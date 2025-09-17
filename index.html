@@ -194,13 +194,81 @@
   const WEBSAFE_FONTS = [
     'Arial','Verdana','Tahoma','Trebuchet MS','Georgia','Times New Roman','Garamond','Courier New','Lucida Console','Lucida Sans Unicode','Segoe UI','Roboto','Ubuntu','Noto Sans','Helvetica','Helvetica Neue','Palatino Linotype','Book Antiqua','Century Gothic','Candara','Gill Sans','Franklin Gothic Medium','Impact','System UI','Monaco'
   ];
-  const SMILEYS = [
-    {k:':)',u:'https://nordicmafia.org/static/resources/images/smileys/smile.gif'},
-    {k:':D',u:'https://nordicmafia.org/static/resources/images/smileys/big_smile.gif'},
-    {k:':(',u:'https://nordicmafia.org/static/resources/images/smileys/sad.gif'},
-    {k:';)',u:'https://nordicmafia.org/static/resources/images/smileys/wink.gif'}
-  ];
-  const SPECIALS = ['•','●','○','–','—','★','☆','◆','◇','■','□','▲','△','▼','▽','✓','✗','✦','✧','✚','✸','❖'];
+const SMILEYS = [
+  {k:':)',u:'https://nordicmafia.org/static/resources/images/smileys/smile.gif'},
+  {k:':(',u:'https://nordicmafia.org/static/resources/images/smileys/frown.gif'},
+  {k:':D',u:'https://nordicmafia.org/static/resources/images/smileys/bigsmile.gif'},
+  {k:'>:',u:'https://nordicmafia.org/static/resources/images/smileys/angry.gif'},
+  {k:'>:)',u:'https://nordicmafia.org/static/resources/images/smileys/evil.gif'},
+  {k:'>;)',u:'https://nordicmafia.org/static/resources/images/smileys/sneaky.gif'},
+  {k:'O:)',u:'https://nordicmafia.org/static/resources/images/smileys/saint.gif'},
+  {k:':O',u:'https://nordicmafia.org/static/resources/images/smileys/surprise.gif'},
+  {k:':?',u:'https://nordicmafia.org/static/resources/images/smileys/surprise.gif'},
+  {k:':s',u:'https://nordicmafia.org/static/resources/images/smileys/worry.gif'},
+  {k:':|',u:'https://nordicmafia.org/static/resources/images/smileys/neutral.gif'},
+  {k:':/',u:'https://nordicmafia.org/static/resources/images/smileys/irritated.gif'},
+  {k:':P',u:'https://nordicmafia.org/static/resources/images/smileys/tongue.gif'},
+  {k:';D',u:'https://nordicmafia.org/static/resources/images/smileys/bigwink.gif'},
+  {k:'8)',u:'https://nordicmafia.org/static/resources/images/smileys/bigeyes.gif'},
+  {k:'B)',u:'https://nordicmafia.org/static/resources/images/smileys/cool.gif'},
+  {k:';)',u:'https://nordicmafia.org/static/resources/images/smileys/wink.gif'},
+  {k:'^_^',u:'https://nordicmafia.org/static/resources/images/smileys/anime.gif'},
+  {k:'>_>',u:'https://nordicmafia.org/static/resources/images/smileys/lookright.gif'},
+  {k:'<_<',u:'https://nordicmafia.org/static/resources/images/smileys/lookleft.gif'},
+  {k:':3',u:'https://nordicmafia.org/static/resources/images/smileys/smile3.gif'},
+  {k:';3',u:'https://nordicmafia.org/static/resources/images/smileys/wink3.gif'},
+  {k:'<g>',u:'https://nordicmafia.org/static/resources/images/smileys/teeth.gif'},
+  {k:'o.O',u:'https://nordicmafia.org/static/resources/images/smileys/boggle.gif'},
+  {k:':blue:',u:'https://nordicmafia.org/static/resources/images/smileys/blue.gif'},
+  {k:':zzz:',u:'https://nordicmafia.org/static/resources/images/smileys/sleepy.gif'},
+  {k:'<3',u:'https://nordicmafia.org/static/resources/images/smileys/heart.gif'},
+  {k:':star:',u:'https://nordicmafia.org/static/resources/images/smileys/star.gif'},
+  {k:':pacman:',u:'https://nordicmafia.org/static/resources/images/smileys/pacman.gif'},
+  {k:'(y)',u:'https://nordicmafia.org/static/resources/images/smileys/thumbs_up.gif'},
+  {k:'(facepalm)',u:'https://nordicmafia.org/static/resources/images/smileys/facepalm.gif'},
+  {k:':luv:',u:'https://nordicmafia.org/static/resources/images/smileys/luv.gif'},
+  {k:':woot:',u:'https://nordicmafia.org/static/resources/images/smileys/woot.gif'},
+  {k:':huhlatter:',u:'https://nordicmafia.org/static/resources/images/smileys/huhlatter.gif'},
+  {k:':drink:',u:'https://nordicmafia.org/static/resources/images/smileys/drink.gif'},
+  {k:':rofl:',u:'https://nordicmafia.org/static/resources/images/smileys/rofl.gif'},
+  {k:':dribble:',u:'https://nordicmafia.org/static/resources/images/smileys/dribble.gif'}
+];
+
+const SPECIALS = [
+  // Punkttegn
+  '•','●','○','◉','◎','◍','▪','▫','◾','◽','▣',
+
+  // Streker
+  '–','—','―','─','━','╍','╏','╱','╲',
+
+  // Stjerner
+  '★','☆','✦','✧','✩','✪','✫','✬','✭','✮','✯','✰','✶','✷','✸','✹','✺','✻','✼','✽',
+
+  // Haker og kryss
+  '✓','✔','✗','✘','✚','✛','✜','✝','✞','✟',
+
+  // Geometriske former
+  '◆','◇','◈','◊','⬧','⬨','⬩','⬪','⬫',
+  '■','□','▢','▣','◼','◻','◾','◽',
+  '▲','△','▴','▵','▶','▷','▸','▹',
+  '▼','▽','▾','▿','◀','◁','◂','◃',
+  '◆','◇','❖','✦','✧',
+
+  // Hjerter
+  '♥','♡','❤','❥','❣','❦','❧',
+
+  // Sirkler
+  '◯','⚪','⚫','❍','⭕','⊙','⊚','⊛',
+
+  // Piler
+  '↑','↓','→','←','↔','↕',
+  '↖','↗','↘','↙',
+  '➔','➙','➚','➘','➤','➣','➢',
+
+  // Diverse
+  '∞','✿','❀','☀','☁','☂','☃','☄','☾','☽','☯','☮','☢','☣','☦','☪','☮','☭','♠','♣','♦'
+];
+
   const TOKENS = ['utbrytninger','besøker','totalmoney','totalbullets','totalpoints','hasjplantasje_størrelse','hasjplantasje_arbeidere_sysselsatte','hasjplantasje_arbeidere_arbeidsløse','hasjplantasje_penger','hasjplantasje_gram','cdg_gangsters','cdg_losses','cdg_wins'];
 
   const editor = document.getElementById('editor');
